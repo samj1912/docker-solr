@@ -26,11 +26,12 @@ RUN git clone https://github.com/metabrainz/mb-solrquerywriter.git /tmp/querywri
     rm -rf /tmp/querywriter/mbsssss && \
     ln -s /opt/solr/server/solr/mycores/mbsssss /tmp/querywriter/mbsssss && \
     mvn package && \
-    cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/server/solr/mycores/mbsssss/lib && \
+    mkdir -p /opt/solr/lib && \
+    cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib && \
     rm -rf /tmp/querywriter
 
 # Pointing default Solr config to our shared lib directory
-RUN sed -i'' 's|</solr>|<str name="sharedLib">/opt/solr/server/solr/mycores/mbsssss/lib</str></solr>|' \
+RUN sed -i'' 's|</solr>|<str name="sharedLib">/opt/solr/lib</str></solr>|' \
         /opt/solr/server/solr/solr.xml
 
 WORKDIR /opt/solr
