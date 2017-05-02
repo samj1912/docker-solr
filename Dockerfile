@@ -14,10 +14,13 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
 USER $SOLR_USER
 
 RUN git clone https://github.com/metabrainz/mbsssss.git /opt/solr/server/solr/mycores/mbsssss
+VOLUME /opt/solr/server/solr/mycores/mbsssss
+
 RUN git clone https://github.com/metabrainz/mmd-schema.git /tmp/mmd-schema && \
     cd /tmp/mmd-schema/brainz-mmd2-jaxb && \
     mvn install && \
     rm -rf /tmp/mmd-schema
+
 RUN git clone https://github.com/metabrainz/mb-solrquerywriter.git /tmp/querywriter && \
     cd /tmp/querywriter && \
     rm -rf /tmp/querywriter/mbsssss && \
