@@ -1,4 +1,4 @@
-FROM solr:6.1-alpine
+FROM solr:6.5-alpine
 
 # Resetting value set in the parent image
 USER root
