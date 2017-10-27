@@ -1,4 +1,4 @@
-FROM solr:6.5-alpine
+FROM solr:6.6-alpine
 
 # Resetting value set in the parent image
 USER root
@@ -10,28 +10,27 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
             maven \
             openjdk8 \
             openssh
+COPY ./mmd-schema/brainz-mmd2-jaxb brainz-mmd2-jaxb
+RUN cd brainz-mmd2-jaxb && \
+    mvn install
+
+COPY ./mb-solrquerywriter mb-solrquerywriter
+RUN cd mb-solrquerywriter && \
+    mvn package -DskipTests
 
 USER $SOLR_USER
 
-RUN git clone https://github.com/metabrainz/mbsssss.git /opt/solr/server/solr/mycores/mbsssss
-VOLUME /opt/solr/server/solr/mycores/mbsssss
+ENV SOLR_HOME /opt/solr/server/solr
 
-RUN git clone https://github.com/metabrainz/mmd-schema.git /tmp/mmd-schema && \
-    cd /tmp/mmd-schema/brainz-mmd2-jaxb && \
-    mvn install && \
-    rm -rf /tmp/mmd-schema
+RUN mkdir -p $SOLR_HOME/mycores
+COPY ./mbsssss $SOLR_HOME/mycores
 
-RUN git clone https://github.com/metabrainz/mb-solrquerywriter.git /tmp/querywriter && \
-    cd /tmp/querywriter && \
-    rm -rf /tmp/querywriter/mbsssss && \
-    ln -s /opt/solr/server/solr/mycores/mbsssss /tmp/querywriter/mbsssss && \
-    mvn package && \
-    mkdir -p /opt/solr/lib && \
-    cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib && \
-    rm -rf /tmp/querywriter
+RUN mkdir $SOLR_HOME/data
+VOLUME $SOLR_HOME/data
 
+RUN mkdir -p /opt/solr/lib && \
+    cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib
+USER $SOLR_USER
 # Pointing default Solr config to our shared lib directory
 RUN sed -i'' 's|</solr>|<str name="sharedLib">/opt/solr/lib</str></solr>|' \
         /opt/solr/server/solr/solr.xml
-
-WORKDIR /opt/solr
