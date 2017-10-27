@@ -14,11 +14,10 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
 # Caching the maven dependencies so that these are built only if 
 # the dependencies are changed and not the source code.
 COPY ./mmd-schema/brainz-mmd2-jaxb/pom.xml brainz-mmd2-jaxb/pom.xml
+COPY ./mb-solrquerywriter/pom.xml mb-solrquerywriter/pom.xml
 RUN cd brainz-mmd2-jaxb && \
     mvn verify clean --fail-never && \
-    cd ..
-COPY ./mb-solrquerywriter/pom.xml mb-solrquerywriter/pom.xml
-RUN cd mb-solrquerywriter && \
+    cd ../mb-solrquerywriter && \
     mvn verify clean --fail-never && \
     cd ..
 
