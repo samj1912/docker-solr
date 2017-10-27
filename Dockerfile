@@ -10,24 +10,35 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
             maven \
             openjdk8 \
             openssh
-COPY ./mmd-schema/brainz-mmd2-jaxb brainz-mmd2-jaxb
+
+# Caching the maven dependencies so that these are built only if 
+# the dependencies are changed and not the source code.
+COPY ./mmd-schema/brainz-mmd2-jaxb/pom.xml brainz-mmd2-jaxb/pom.xml
 RUN cd brainz-mmd2-jaxb && \
-    mvn install
-RUN cd ..
-COPY ./mb-solrquerywriter mb-solrquerywriter
+    mvn verify clean --fail-never && \
+    cd ..
+COPY ./mb-solrquerywriter/pom.xml mb-solrquerywriter/pom.xml
 RUN cd mb-solrquerywriter && \
+    mvn verify clean --fail-never && \
+    cd ..
+
+COPY ./mmd-schema/brainz-mmd2-jaxb brainz-mmd2-jaxb
+COPY ./mb-solrquerywriter mb-solrquerywriter
+RUN cd brainz-mmd2-jaxb && \
+    mvn install && \
+    cd ../mb-solrquerywriter && \
     mvn package -DskipTests
+    mkdir -p /opt/solr/lib && \
+    cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib
 
 ENV SOLR_HOME /opt/solr/server/solr
-
-RUN mkdir -p $SOLR_HOME/mycores
 COPY ./mbsssss $SOLR_HOME/mycores/mbsssss
 
-RUN mkdir -p /opt/solr/lib && \
-    cp mb-solrquerywriter/target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib
 # Pointing default Solr config to our shared lib directory
+# and fix permissions
 RUN sed -i'' 's|</solr>|<str name="sharedLib">/opt/solr/lib</str></solr>|' \
-        /opt/solr/server/solr/solr.xml
-RUN mkdir $SOLR_HOME/data
-RUN chown -R solr:solr /opt/solr
-USER solr
+        /opt/solr/server/solr/solr.xml && \
+    mkdir $SOLR_HOME/data && \
+    chown -R solr:solr /opt/solr
+
+USER $SOLR_USER
