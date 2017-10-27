@@ -13,15 +13,15 @@ RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repos
 
 # Caching the maven dependencies so that these are built only if 
 # the dependencies are changed and not the source code.
-COPY ./mmd-schema/brainz-mmd2-jaxb/pom.xml brainz-mmd2-jaxb/pom.xml
 COPY ./mb-solrquerywriter/pom.xml mb-solrquerywriter/pom.xml
+COPY ./mb-solrquerywriter/mmd-schema/brainz-mmd2-jaxb/pom.xml brainz-mmd2-jaxb/pom.xml
 RUN cd brainz-mmd2-jaxb && \
     mvn verify clean --fail-never && \
     cd ../mb-solrquerywriter && \
     mvn verify clean --fail-never && \
     cd ..
 
-COPY ./mmd-schema/brainz-mmd2-jaxb brainz-mmd2-jaxb
+COPY ./mb-solrquerywriter/mmd-schema/brainz-mmd2-jaxb brainz-mmd2-jaxb
 COPY ./mb-solrquerywriter mb-solrquerywriter
 RUN cd brainz-mmd2-jaxb && \
     mvn install && \
@@ -31,7 +31,7 @@ RUN cd brainz-mmd2-jaxb && \
     cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib
 
 ENV SOLR_HOME /opt/solr/server/solr
-COPY ./mbsssss $SOLR_HOME/mycores/mbsssss
+COPY ./mb-solrquerywriter/mbsssss $SOLR_HOME/mycores/mbsssss
 
 # Pointing default Solr config to our shared lib directory
 # and fix permissions
