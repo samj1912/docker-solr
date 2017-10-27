@@ -27,7 +27,7 @@ COPY ./mb-solrquerywriter mb-solrquerywriter
 RUN cd brainz-mmd2-jaxb && \
     mvn install && \
     cd ../mb-solrquerywriter && \
-    mvn package -DskipTests
+    mvn package -DskipTests && \
     mkdir -p /opt/solr/lib && \
     cp target/solrwriter-0.0.1-SNAPSHOT-jar-with-dependencies.jar /opt/solr/lib
 
